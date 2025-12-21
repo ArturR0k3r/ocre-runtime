@@ -136,10 +136,10 @@ static int littlefs_flash_erase(unsigned int id) {
 FS_FSTAB_DECLARE_ENTRY(PARTITION_NODE);
 #else  /* PARTITION_NODE */
 FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(user_data);
-static struct fs_mount_t lfs_storage_mnt = {
+static struct fs_mount_t lfs_storage_partition_mnt = {
         .type = FS_LITTLEFS,
         .fs_data = &user_data,
-        .storage_dev = (void *)FIXED_PARTITION_ID(user_data_partition),
+        .storage_dev = (void *)FIXED_PARTITION_ID(storage_partition),
         .mnt_point = FS_MOUNT_POINT,
 };
 #endif /* PARTITION_NODE */
@@ -148,7 +148,7 @@ struct fs_mount_t *mp =
 #if DT_NODE_EXISTS(PARTITION_NODE)
         &FS_FSTAB_ENTRY(PARTITION_NODE)
 #else
-        &lfs_storage_mnt
+        &lfs_storage_partition_mnt
 #endif
         ;
 
@@ -191,7 +191,7 @@ static int littlefs_mount(struct fs_mount_t *mp) {
 }
 #endif /* CONFIG_APP_LITTLEFS_STORAGE_BLK_SDMMC */
 
-void ocre_app_storage_init() {
+void ocre_app_storage_partition_init() {
     struct fs_dirent entry;
     struct fs_statvfs sbuf;
     int rc;
@@ -263,8 +263,8 @@ static int cmd_flash_format(const struct shell *shell, size_t argc, char *argv[]
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(flash_commands,
-                               SHELL_CMD(format, NULL, "Format the flash storage device (all user data will be lost)",
+                               SHELL_CMD(format, NULL, "Format the flash storage_partition device (all user data will be lost)",
                                          cmd_flash_format),
                                SHELL_SUBCMD_SET_END);
 
-SHELL_CMD_REGISTER(user_storage, &flash_commands, "User storage management", NULL);
+SHELL_CMD_REGISTER(user_storage_partition, &flash_commands, "User storage_partition management", NULL);

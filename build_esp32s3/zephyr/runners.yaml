@@ -1,0 +1,49 @@
+# Available runners configured by board.cmake.
+runners:
+- openocd
+- esp32
+
+# Default flash runner if --runner is not given.
+flash-runner: esp32
+
+# Default debug runner if --runner is not given.
+debug-runner: openocd
+
+# Common runner configuration values.
+config:
+  board_dir: /home/artur_ubuntu/Akira/zephyr/boards/espressif/esp32s3_devkitm
+  # Build outputs:
+  elf_file: zephyr.elf
+  bin_file: /home/artur_ubuntu/Akira/ocre/build_esp32s3/zephyr/zephyr.signed.confirmed.bin
+  # Host tools:
+  gdb: /home/artur_ubuntu/zephyr-sdk-0.16.8/xtensa-espressif_esp32s3_zephyr-elf/bin/xtensa-espressif_esp32s3_zephyr-elf-gdb
+  openocd: /home/artur_ubuntu/zephyr-sdk-0.16.8/sysroots/x86_64-pokysdk-linux/usr/bin/openocd
+  openocd_search:
+    - /home/artur_ubuntu/zephyr-sdk-0.16.8/sysroots/x86_64-pokysdk-linux/usr/share/openocd/scripts
+
+# Runner specific arguments
+args:
+  openocd:
+    - --cmd-load
+    - flash write_image erase
+    - --cmd-verify
+    - verify_image
+    - --no-init
+    - --no-halt
+    - --no-targets
+    - --no-load
+    - --gdb-init
+    - set remote hardware-watchpoint-limit 2
+    - --gdb-init
+    - maintenance flush register-cache
+    - --gdb-init
+    - mon reset halt
+    - --gdb-init
+    - thb main
+  esp32:
+    - --esp-monitor-baud=115200
+    - --esp-idf-path=/home/artur_ubuntu/Akira/modules/hal/espressif
+    - --esp-app-address=0x20000
+    - --esp-flash-size=8MB
+    - --esp-flash-freq=40m
+    - --esp-flash-mode=dio

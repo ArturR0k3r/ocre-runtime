@@ -1,6 +1,5 @@
 menu "Project Ocre options"
 
-source "Kconfig.zephyr"
 
 config OCRE
 	bool "Project Ocre"
@@ -38,6 +37,15 @@ config OCRE_WAMR_HEAP_BUFFER_SIZE
   default 32768
   help
     A static memory allocation for WAMR to use as a heap.
+
+config OCRE_WAMR_HEAP_BUFFER_IN_PSRAM
+  bool "Place WAMR heap buffer in PSRAM (when available)"
+  default n
+  depends on MEMC && OCRE
+  help
+    When enabled, the WAMR heap buffer (wamr_heap_buf) will be placed in
+    the PSRAM/external RAM region using the PSRAM section attribute (if
+    the board supports it via `PSRAM_SECTION_ATTR`).
 
 config OCRE_STORAGE_HEAP_BUFFER_SIZE
   int "Storage heap buffer size in bytes"

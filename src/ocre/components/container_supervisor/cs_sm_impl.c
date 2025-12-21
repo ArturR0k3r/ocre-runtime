@@ -7,6 +7,8 @@
 #include <ocre/ocre.h>
 #include "ocre_core_external.h"
 
+#include <zephyr/sys/mem_stats.h>
+#include "wasm_exec_env.h"
 #ifdef CONFIG_OCRE_TIMER
 #include "ocre_timers/ocre_timer.h"
 #endif
@@ -36,8 +38,8 @@ LOG_MODULE_DECLARE(ocre_cs_component, OCRE_LOG_LEVEL);
 
 #include "ocre_psram.h"
 
-// WAMR heap buffer - uses PSRAM when available
-#if defined(CONFIG_MEMC)
+// WAMR heap buffer - optionally place in PSRAM when configured
+#if defined(CONFIG_OCRE_WAMR_HEAP_BUFFER_IN_PSRAM) && defined(CONFIG_MEMC)
     PSRAM_SECTION_ATTR
 #endif
 static char wamr_heap_buf[CONFIG_OCRE_WAMR_HEAP_BUFFER_SIZE] = {0};
@@ -124,7 +126,9 @@ static void container_thread_entry(void *args) {
     current_module_tls = &module_inst;
 #endif
     // Run the WASM main function
+    printk(">>> WASM main executing...\n");
     bool success = wasm_application_execute_main(module_inst, 0, NULL);
+    printk(">>> WASM main returned: %s\n", success ? "SUCCESS" : "FAILURE");
     // Update container status
     if (container->container_runtime_status != CONTAINER_STATUS_STOPPED)
         container->container_runtime_status = success ? CONTAINER_STATUS_STOPPED : CONTAINER_STATUS_ERROR;
