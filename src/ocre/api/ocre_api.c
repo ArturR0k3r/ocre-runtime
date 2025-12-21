@@ -26,9 +26,10 @@
 
 #include "ocre/utils/utils.h"
 
-#if defined(CONFIG_OCRE_TIMER) || defined(CONFIG_OCRE_GPIO) || defined(CONFIG_OCRE_SENSORS) || defined(CONFIG_OCRE_CONTAINER_MESSAGING)
+#if defined(CONFIG_OCRE_TIMER) || defined(CONFIG_OCRE_GPIO) || defined(CONFIG_OCRE_SENSORS) ||                         \
+        defined(CONFIG_OCRE_CONTAINER_MESSAGING)
 #include "ocre_common.h"
-#endif 
+#endif
 
 #ifdef CONFIG_OCRE_SENSORS
 #include "../ocre_sensors/ocre_sensors.h"
@@ -92,14 +93,29 @@ int ocre_sleep(wasm_exec_env_t exec_env, int milliseconds) {
     return 0;
 }
 
+/* Allow external projects to register additional native symbol modules
+ * at runtime. This keeps OCRE core standalone and prevents project specific
+ * APIs from being hard-coded into the OCRE tree.
+ */
+int ocre_register_native_module(const char *module_name, NativeSymbol *symbols, int symbol_count) {
+    if (!module_name || !symbols || symbol_count <= 0) {
+        return -EINVAL;
+    }
+    if (!wasm_runtime_register_natives(module_name, symbols, symbol_count)) {
+        return -EIO;
+    }
+    return 0;
+}
+
 // Ocre Runtime API
 NativeSymbol ocre_api_table[] = {
         {"uname", _ocre_posix_uname, "(*)i", NULL},
         {"ocre_sleep", ocre_sleep, "(i)i", NULL},
-#if defined(CONFIG_OCRE_TIMER) || defined(CONFIG_OCRE_GPIO) || defined(CONFIG_OCRE_SENSORS) || defined(CONFIG_OCRE_CONTAINER_MESSAGING)
+#if defined(CONFIG_OCRE_TIMER) || defined(CONFIG_OCRE_GPIO) || defined(CONFIG_OCRE_SENSORS) ||                         \
+        defined(CONFIG_OCRE_CONTAINER_MESSAGING)
         {"ocre_get_event", ocre_get_event, "(iiiiii)i", NULL},
         {"ocre_register_dispatcher", ocre_register_dispatcher, "(i$)i", NULL},
-#endif 
+#endif
 // Container Messaging API
 #ifdef CONFIG_OCRE_CONTAINER_MESSAGING
         {"ocre_publish_message", ocre_messaging_publish, "(***i)i", NULL},

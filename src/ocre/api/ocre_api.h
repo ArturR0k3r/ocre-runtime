@@ -27,6 +27,13 @@ struct _ocre_posix_utsname {
 
 int _ocre_posix_uname(wasm_exec_env_t exec_env, struct _ocre_posix_utsname *name);
 
+/* Register additional native symbol modules at runtime.
+ * External projects (e.g., AkiraOS) should register their own APIs
+ * with OCRE using this helper instead of embedding project-specific
+ * symbols into the OCRE core.
+ */
+int ocre_register_native_module(const char *module_name, NativeSymbol *symbols, int symbol_count);
+
 extern NativeSymbol ocre_api_table[];
 extern int ocre_api_table_size;
 #endif
