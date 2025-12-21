@@ -1,1 +1,0 @@
-"mcuboot":"/home/artur_ubuntu/Akira/bootloader/mcuboot":"/home/artur_ubuntu/Akira/bootloader/mcuboot/boot/zephyr/sysbuild"

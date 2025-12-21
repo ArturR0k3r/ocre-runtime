@@ -1,5 +1,0 @@
-west:
-  command: /home/artur_ubuntu/.local/bin/west build --pristine -b esp32s3_devkitm/esp32s3/procpu
-    ../AkiraOS -d build_esp32s3
-  topdir: /home/artur_ubuntu/Akira
-  version: 1.4.0

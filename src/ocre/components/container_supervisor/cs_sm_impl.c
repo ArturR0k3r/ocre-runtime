@@ -23,7 +23,6 @@
 #include "api/ocre_common.h"
 #endif
 
-
 #ifdef CONFIG_OCRE_SHELL
 #include "ocre/shell/ocre_shell.h"
 #endif
@@ -40,10 +39,9 @@ LOG_MODULE_DECLARE(ocre_cs_component, OCRE_LOG_LEVEL);
 
 // WAMR heap buffer - optionally place in PSRAM when configured
 #if defined(CONFIG_OCRE_WAMR_HEAP_BUFFER_IN_PSRAM) && defined(CONFIG_MEMC)
-    PSRAM_SECTION_ATTR
+PSRAM_SECTION_ATTR
 #endif
 static char wamr_heap_buf[CONFIG_OCRE_WAMR_HEAP_BUFFER_SIZE] = {0};
-
 
 // Thread pool for container execution
 #define CONTAINER_THREAD_POOL_SIZE 4
@@ -130,8 +128,9 @@ static void container_thread_entry(void *args) {
     bool success = wasm_application_execute_main(module_inst, 0, NULL);
     printk(">>> WASM main returned: %s\n", success ? "SUCCESS" : "FAILURE");
     // Update container status
-    if (container->container_runtime_status != CONTAINER_STATUS_STOPPED)
+    if (container->container_runtime_status != CONTAINER_STATUS_STOPPED) {
         container->container_runtime_status = success ? CONTAINER_STATUS_STOPPED : CONTAINER_STATUS_ERROR;
+    }
     // Cleanup sequence
     core_mutex_lock(&container->lock);
     {
@@ -153,7 +152,6 @@ static void container_thread_entry(void *args) {
         // Clear TLS
         current_module_tls = NULL;
 #endif
-
     }
     core_mutex_unlock(&container->lock);
 
@@ -179,7 +177,6 @@ static int load_binary_to_buffer_fs(ocre_runtime_arguments_t *container_argument
     size_t file_size = 0;
     void *file_handle = NULL;
     char filepath[FILE_PATH_MAX];
-    
 
     ret = core_construct_filepath(filepath, sizeof(filepath), container_data->sha256);
     if (ret < 0) {
@@ -350,27 +347,23 @@ ocre_container_status_t CS_run_container(ocre_container_t *container) {
         return CONTAINER_STATUS_ERROR;
     }
 
-    #ifdef CONFIG_OCRE_NETWORKING
-    #define ADDRESS_POOL_SIZE 1
-        const char *addr_pool[ADDRESS_POOL_SIZE] = {
-                "0.0.0.0/0",
-        };
-        wasm_runtime_set_wasi_addr_pool(curr_container_arguments->module, addr_pool, ADDRESS_POOL_SIZE);
-    #endif
+#ifdef CONFIG_OCRE_NETWORKING
+#define ADDRESS_POOL_SIZE 1
+    const char *addr_pool[ADDRESS_POOL_SIZE] = {
+            "0.0.0.0/0",
+    };
+    wasm_runtime_set_wasi_addr_pool(curr_container_arguments->module, addr_pool, ADDRESS_POOL_SIZE);
+#endif
 
-    #ifdef CONFIG_OCRE_CONTAINER_FILESYSTEM
-    // Simple for now: map CONTAINER_FS_PATH to /
-    // TODO: eventually every container should probably have its own root folder,
-    // however wasm_runtime_set_wasi_args expects constant values.
-    #define DIR_LIST_SIZE 1
-                static const char *dir_map_list[DIR_LIST_SIZE] = {
-                    "/::" CONTAINER_FS_PATH
-                };
-                wasm_runtime_set_wasi_args(curr_container_arguments->module,
-                                        NULL, 0,
-                                        dir_map_list, DIR_LIST_SIZE,
-                                        NULL, 0, NULL, 0);
-    #endif
+#ifdef CONFIG_OCRE_CONTAINER_FILESYSTEM
+// Simple for now: map CONTAINER_FS_PATH to /
+// TODO: eventually every container should probably have its own root folder,
+// however wasm_runtime_set_wasi_args expects constant values.
+#define DIR_LIST_SIZE 1
+    static const char *dir_map_list[DIR_LIST_SIZE] = {"/::" CONTAINER_FS_PATH};
+    wasm_runtime_set_wasi_args(curr_container_arguments->module, NULL, 0, dir_map_list, DIR_LIST_SIZE, NULL, 0, NULL,
+                               0);
+#endif
 
     if (curr_container_arguments->module_inst) {
         LOG_INF("WASM runtime already instantiated for container:%d", curr_container_ID);
@@ -460,12 +453,13 @@ ocre_container_status_t CS_stop_container(ocre_container_t *container, ocre_cont
         for (int i = 0; i < CONTAINER_THREAD_POOL_SIZE; i++) {
             if (container_thread_active[i] && container_threads[i].user_options == curr_container_ID) {
 #if defined(CONFIG_OCRE_CONTAINER_WAMR_TERMINATION)
-/**
- * wasm_runtime_terminate uses POSIX signals to terminate the thread from the outside; calling core_thread_destroy
- * would try to destroy again the thread, and pthread_join() will never return, while freeing the stack would cause
- * segfault. This separation is needed to distinguish platform supported by wamr with this features,
- * from those which aren't. Since this function exists on those platforms, but stubbed, config parameter is used.
- */
+                /**
+                 * wasm_runtime_terminate uses POSIX signals to terminate the thread from the outside; calling
+                 * core_thread_destroy would try to destroy again the thread, and pthread_join() will never return,
+                 * while freeing the stack would cause segfault. This separation is needed to distinguish platform
+                 * supported by wamr with this features, from those which aren't. Since this function exists on those
+                 * platforms, but stubbed, config parameter is used.
+                 */
                 wasm_runtime_terminate(curr_container_arguments->module_inst);
 #else
                 core_thread_destroy(&container_threads[i]);
