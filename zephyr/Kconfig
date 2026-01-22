@@ -20,6 +20,15 @@ config OCRE
 
 if OCRE
 
+config OCRE_DISABLE_POSIX_TIMERS
+    bool "Disable POSIX timers for OCRE"
+    default n
+    help
+        Disable POSIX timer support for OCRE. Use this on platforms where
+        POSIX timer support is broken (e.g., Zephyr 4.3+ on ESP32 with picolibc
+        where struct sigevent is missing pthread fields). When disabled, POSIX API
+        is still available but timer functions will not work.
+
 config OCRE_DEFAULT_WORKING_DIRECTORY
     string "Default OCRE working directory"
     default "/lfs/ocre"
