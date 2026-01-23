@@ -9,7 +9,14 @@ config OCRE
     select THREAD_STACK_INFO
     select DYNAMIC_THREAD
     select DYNAMIC_THREAD_ALLOC
-    select POSIX_API
+    # Enable required POSIX components individually to avoid broken timers
+    select POSIX_SYSTEM_INTERFACES
+    select POSIX_THREADS
+    select POSIX_FD_MGMT
+    select POSIX_FILE_SYSTEM
+    select XSI_SINGLE_PROCESS
+    select POSIX_MULTI_PROCESS
+    select POSIX_NETWORKING if NETWORKING
     select FLASH
     select FLASH_MAP
     select FILE_SYSTEM
