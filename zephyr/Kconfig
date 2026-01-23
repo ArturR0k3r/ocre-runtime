@@ -15,6 +15,7 @@ config OCRE
     select FILE_SYSTEM
     select FILE_SYSTEM_LITTLEFS
     select NETWORKING
+    select POSIX_TIMERS if !OCRE_DISABLE_POSIX_TIMERS
   help
 	  Enable the Project Ocre runtime.
 
