@@ -12,6 +12,8 @@
 
 #include "core_external.h"
 
+#ifdef CONFIG_POSIX_TIMERS
+
 static void posix_timer_cb(union sigval sv)
 {
 	core_timer_t *timer = (core_timer_t *)sv.sival_ptr;
@@ -65,3 +67,31 @@ int core_timer_delete(core_timer_t *timer)
 
 	return timer_delete(timer->timerid);
 }
+
+#else
+
+int core_timer_init(core_timer_t *timer, core_timer_callback_t cb, void *user_data)
+{
+	(void)timer; (void)cb; (void)user_data;
+	return -ENOTSUP;
+}
+
+int core_timer_start(core_timer_t *timer, int timeout_ms, int period_ms)
+{
+	(void)timer; (void)timeout_ms; (void)period_ms;
+	return -ENOTSUP;
+}
+
+int core_timer_stop(core_timer_t *timer)
+{
+	(void)timer;
+	return -ENOTSUP;
+}
+
+int core_timer_delete(core_timer_t *timer)
+{
+	(void)timer;
+	return -ENOTSUP;
+}
+
+#endif

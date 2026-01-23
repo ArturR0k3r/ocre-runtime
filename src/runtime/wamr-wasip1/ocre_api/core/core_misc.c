@@ -12,11 +12,16 @@
 #include <errno.h>
 #include <sched.h>
 #include <stdio.h>
+#include <zephyr/sys/clock.h>
 
 uint32_t core_uptime_get(void)
 {
 	struct timespec ts;
+#ifdef CONFIG_POSIX_TIMERS
 	clock_gettime(CLOCK_MONOTONIC, &ts);
+#else
+	sys_clock_gettime(SYS_CLOCK_MONOTONIC, &ts);
+#endif
 	return (uint32_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
 }
 
